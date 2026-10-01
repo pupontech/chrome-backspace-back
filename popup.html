@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Backspace to go Back</title>
+    <link rel="stylesheet" href="ui.css">
+  </head>
+  <body class="popup-page">
+    <main class="panel popup-panel">
+      <h1>Backspace to go Back</h1>
+      <p id="site-name" class="site-name">Checking this page…</p>
+      <p id="site-status" class="status" role="status" aria-live="polite"></p>
+      <p id="popup-error" class="message message-error" role="alert" aria-live="assertive" hidden></p>
+      <button id="site-action" class="primary-button" type="button" disabled>Loading…</button>
+      <a id="options-link" class="text-link" href="#">Manage excluded sites</a>
+    </main>
+    <script src="site-rules.js"></script>
+    <script src="ui-settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

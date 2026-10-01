@@ -1,0 +1,240 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light dark;
+  font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #202124;
+  background: #f8f9fa;
+}
+
+body {
+  margin: 0;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgb(60 64 67 / 12%);
+}
+
+.popup-page {
+  width: 320px;
+  padding: 12px;
+}
+
+.popup-panel {
+  padding: 18px;
+}
+
+.options-page {
+  min-width: 320px;
+  padding: 32px 20px;
+}
+
+.options-panel {
+  width: min(100%, 680px);
+  margin: 0 auto;
+  padding: 28px;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #202124;
+}
+
+h1 {
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+h2 {
+  margin-top: 28px;
+  font-size: 16px;
+}
+
+.site-name {
+  margin: 18px 0 4px;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.status,
+.intro {
+  color: #5f6368;
+}
+
+.status {
+  min-height: 1.45em;
+  margin: 4px 0 14px;
+}
+
+.primary-button,
+.remove-button {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.primary-button {
+  padding: 7px 12px;
+  color: #fff;
+  background: #1a73e8;
+  font-weight: 600;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #1558b0;
+}
+
+.primary-button:disabled,
+.remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid #8ab4f8;
+  outline-offset: 2px;
+}
+
+.text-link {
+  display: inline-block;
+  margin: 14px 0 0 12px;
+  color: #1967d2;
+}
+
+.message {
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+
+.message-error {
+  color: #b3261e;
+}
+
+.intro {
+  max-width: 58ch;
+  margin: 8px 0 24px;
+}
+
+.add-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 1px solid #9aa0a6;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.help-text {
+  margin: 6px 0 0;
+  color: #5f6368;
+  font-size: 12px;
+}
+
+.empty-state {
+  color: #5f6368;
+}
+
+.site-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 7px;
+}
+
+.site-item-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.remove-button {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  color: #b3261e;
+  background: transparent;
+  border-color: #dadce0;
+}
+
+.remove-button:hover:not(:disabled) {
+  background: #fce8e6;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #e8eaed;
+    background: #202124;
+  }
+
+  .panel {
+    background: #292a2d;
+    border-color: #5f6368;
+  }
+
+  h1,
+  h2 {
+    color: #e8eaed;
+  }
+
+  .status,
+  .intro,
+  .help-text,
+  .empty-state {
+    color: #bdc1c6;
+  }
+
+  .text-link {
+    color: #8ab4f8;
+  }
+
+  .input-row input {
+    color: #e8eaed;
+    background: #202124;
+    border-color: #80868b;
+  }
+
+  .site-item,
+  .remove-button {
+    border-color: #5f6368;
+  }
+
+  .remove-button:hover:not(:disabled) {
+    background: #5f2825;
+  }
+}

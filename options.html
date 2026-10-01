@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Site settings — Backspace to go Back</title>
+    <link rel="stylesheet" href="ui.css">
+  </head>
+  <body class="options-page">
+    <main class="panel options-panel">
+      <h1>Site settings</h1>
+      <p class="intro">Backspace navigation is disabled on the sites listed here, including their subdomains.</p>
+      <form id="add-site-form" class="add-form" novalidate>
+        <label for="site-input">Website or hostname</label>
+        <div class="input-row">
+          <input id="site-input" name="site" type="text" inputmode="url" autocomplete="url" placeholder="example.com" aria-describedby="input-help">
+          <button class="primary-button" type="submit">Add site</button>
+        </div>
+        <p id="input-help" class="help-text">Enter a hostname or an http/https URL. A rule also covers subdomains.</p>
+      </form>
+      <p id="options-error" class="message message-error" role="alert" aria-live="assertive" hidden></p>
+      <p id="options-status" class="status" role="status" aria-live="polite"></p>
+      <h2>Disabled sites</h2>
+      <p id="empty-state" class="empty-state" hidden>No sites are disabled.</p>
+      <ul id="site-list" class="site-list" aria-label="Disabled sites"></ul>
+    </main>
+    <script src="site-rules.js"></script>
+    <script src="ui-settings.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
