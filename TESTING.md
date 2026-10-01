@@ -28,7 +28,7 @@ Executed locally on October 1, 2026:
 - Simplification: shared 29-line `ui-settings.js` replaced duplicate UI storage/API wrappers. No worker, framework, network client or extra permission added.
 - `git diff --check` passed. Runtime JavaScript is approximately 648 lines / 24,238 bytes in five files; tests and packaging are development-only.
 
-Hosted Windows CI: pending first push; merge is gated on its result.
+Hosted CI passed on `ec959cff15977a1c0af51704acfddfee045f6bc0`: [run 36893711976](https://github.com/pupontech/chrome-backspace-back/actions/runs/36893711976). All three jobs passed: Ubuntu and Windows units, plus Windows headed loaded-extension tests against both the checkout and extracted runtime-only ZIP. The PR-triggered companion run also passed. Current action versions were subsequently refreshed to remove Node 20 deprecation warnings; merge remains gated on checks for the final head.
 
 ## Owner-only checks
 
