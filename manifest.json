@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Backspace to go Back",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "author": "Razvan Caliman",
-  "description": "Restores browser behavior of navigating to previous page when pressing the Backspace key.",
+  "description": "Navigate with Backspace and disable the shortcut on selected sites.",
   "minimum_chrome_version": "88",
   "icons": {
     "48": "icon48.png",
@@ -11,12 +11,17 @@
     "128": "icon128.png",
     "256": "icon256.png"
   },
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["contentscript.js"],
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["site-rules.js", "contentscript.js"],
       "run_at": "document_start",
-      "all_frames" : true,
+      "all_frames": true,
       "match_about_blank": true
     }
   ]
