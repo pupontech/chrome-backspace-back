@@ -1,0 +1,49 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  extension-e2e:
+    name: Loaded extension harness (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npx playwright install chromium
+      - run: npm test
+      - run: npm run test:e2e
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.x'
+      - run: npm run release
+      - name: Load and test the runtime-only ZIP
+        shell: pwsh
+        run: |
+          $env:EXTENSION_DIR = Join-Path $env:RUNNER_TEMP 'backspace-packaged'
+          Expand-Archive -Path dist/chrome-backspace-back-v1.2.0.zip -DestinationPath $env:EXTENSION_DIR
+          npm run test:e2e

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backspace extension browser fixture</title>
+</head>
+<body>
+  <main>
+    <h1>Backspace extension browser fixture</h1>
+    <a id="next-page" href="/two">Open second history entry</a>
+    <input id="text-input" type="text" value="">
+    <input id="search-input" type="search" value="">
+    <textarea id="text-area"></textarea>
+    <div id="editable-parent" contenteditable="true"><span id="editable-child" tabindex="0"></span></div>
+    <open-editor id="open-editor"></open-editor>
+    <custom-editor id="custom-editor"></custom-editor>
+    <closed-editor id="closed-editor"></closed-editor>
+  </main>
+  <script>
+    window.__backspaceEvents = [];
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Backspace') {
+        window.__backspaceEvents.push({
+          defaultPrevented: event.defaultPrevented,
+          altKey: event.altKey,
+          ctrlKey: event.ctrlKey,
+          metaKey: event.metaKey,
+          repeat: event.repeat,
+          isComposing: event.isComposing,
+          shiftKey: event.shiftKey
+        });
+      }
+    }, true);
+
+    class OpenEditor extends HTMLElement {
+      constructor() {
+        super();
+        const root = this.attachShadow({ mode: 'open' });
+        root.innerHTML = '<input id="shadow-input" type="text" value="">';
+      }
+    }
+    customElements.define('open-editor', OpenEditor);
+
+    class CustomEditor extends HTMLElement {
+      constructor() {
+        super();
+        const root = this.attachShadow({ mode: 'open' });
+        root.innerHTML = '<div id="custom-editable" contenteditable="true">abc</div>';
+      }
+    }
+    customElements.define('custom-editor', CustomEditor);
+
+    class ClosedEditor extends HTMLElement {
+      constructor() {
+        super();
+        const root = this.attachShadow({ mode: 'closed' });
+        const editable = document.createElement('div');
+        editable.contentEditable = 'true';
+        editable.textContent = 'abc';
+        root.append(editable);
+        this.focusEditor = () => editable.focus();
+        this.readEditorText = () => editable.textContent;
+      }
+    }
+    customElements.define('closed-editor', ClosedEditor);
+
+    document.querySelector('#editable-child').textContent = 'abc';
+  </script>
+</body>
+</html>
