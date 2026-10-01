@@ -20,6 +20,14 @@ An exclusion for `example.com` also covers `mail.example.com` and deeper subdoma
 
 If a parent rule controls the current site, the popup identifies that rule and sends you to options. It never silently removes a parent exclusion and enables all its other subdomains.
 
+## Re-enable on a site
+
+Click **Enable and refresh page** in the toolbar popup. The extension first saves the exclusion change, then refreshes only that tab so its keyboard handler is ready. **Save any unsaved work before clicking:** refreshing may discard form/editor changes or prompt you to confirm leaving. Disabling does not refresh the page.
+
+If another parent-domain rule still excludes the site, the button instead removes only the redundant site rule; it does not refresh or silently remove the parent. Use options to manage the controlling parent rule. Removing a rule in options updates already-injected tabs without automatically refreshing them.
+
+If saving fails, the tab is not refreshed. If refreshing fails after a successful save, navigation remains enabled and the popup asks you to reload manually. Browser-level disabling/re-enabling of the entire extension in `chrome://extensions` is separate: an inactive extension cannot run this toolbar action.
+
 ## Manage exclusions
 
 Open **Manage excluded sites** in the popup (or the extension's options in `chrome://extensions`). Add a hostname or an HTTP(S) URL; entries are trimmed, lowercased and normalized to hostnames. Equivalent entries are duplicates. Remove rules individually. Validation and storage errors appear inline.

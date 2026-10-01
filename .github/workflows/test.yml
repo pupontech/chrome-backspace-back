@@ -45,5 +45,6 @@ jobs:
         shell: pwsh
         run: |
           $env:EXTENSION_DIR = Join-Path $env:RUNNER_TEMP 'backspace-packaged'
-          Expand-Archive -Path dist/chrome-backspace-back-v1.2.0.zip -DestinationPath $env:EXTENSION_DIR
+          $version = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
+          Expand-Archive -Path "dist/chrome-backspace-back-v$version.zip" -DestinationPath $env:EXTENSION_DIR
           npm run test:e2e

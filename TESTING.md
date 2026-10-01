@@ -30,6 +30,15 @@ Executed locally on October 1, 2026:
 
 Hosted CI passed on `ec959cff15977a1c0af51704acfddfee045f6bc0`: [run 36893711976](https://github.com/pupontech/chrome-backspace-back/actions/runs/36893711976). All three jobs passed: Ubuntu and Windows units, plus Windows headed loaded-extension tests against both the checkout and extracted runtime-only ZIP. The PR-triggered companion run also passed. Current action versions were subsequently refreshed to remove Node 20 deprecation warnings; merge remains gated on checks for the final head.
 
+## 1.2.1 enable-and-refresh change
+
+- Owner reports the 1.2.0 prototype works and requested automatic current-page refresh when re-enabling from the toolbar.
+- `npm test`: **49 passed, 0 failed, 0 skipped**. Save-before-reload, captured tab ID, duplicate-click coalescing, write/reload failure handling, parent rules and no-refresh paths are covered.
+- Headed Chromium source harness passed. The popup saves real Chrome Sync settings, uses real `chrome.tabs.reload` exactly once on its selected tab, preserves history and leaves another tab untouched; subsequent Backspace reaches the prior page. Existing editing, iframe and browser-restart checks also passed.
+- **Proof boundary:** the popup-flow test supplies `tabs.query` tab selection as a fixture because the harness does not invoke native toolbar consent. Runtime popup scripts, storage, reload and navigation are real. Native toolbar/activeTab grant remains an owner-only check.
+- Runtime ZIP contains 13 allowlisted files. Hosted Windows source/ZIP results are linked in the preview release.
+- No additional permission, service worker or runtime dependency. Save unsaved work before clicking **Enable and refresh page**. Options removals remain live updates without forced refresh.
+
 ## Owner-only checks
 
 - Manual current stable Google Chrome toolbar click/grant path, installing/reloading on your real browsing profile, and interactions with your existing extensions.

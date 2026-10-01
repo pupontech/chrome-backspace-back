@@ -423,6 +423,57 @@ async function run() {
     assert.ok((await popupPage.locator('#site-name').innerText()).trim().length, 'Popup did not render a page status');
     console.log('LIMIT popup document was opened as a chrome-extension page; Playwright did not activate the browser toolbar action, so action-popup focus/activeTab behavior is not claimed');
 
+    await popupPage.close();
+
+    // Only tab discovery is a fixture: Playwright cannot invoke the native toolbar
+    // grant. The popup scripts, sync storage, tabs.reload and document are real.
+    await setChromeSync(optionsPage, { settingsVersion: 1, disabledSites: [host] });
+    const targetCreated = context.waitForEvent('page');
+    const reloadTabId = await optionsPage.evaluate((origin) => new Promise((resolve) => {
+      chrome.tabs.create({ url: `${origin}/one` }, (tab) => resolve(tab.id));
+    }), fixture.origin);
+    const reloadTarget = await targetCreated;
+    await waitForPath(reloadTarget, '/one');
+    await reloadTarget.getByRole('link', { name: 'Open second history entry' }).click();
+    await waitForPath(reloadTarget, '/two');
+    await reloadTarget.waitForLoadState('load');
+    await focusDocumentBody(reloadTarget);
+    await reloadTarget.keyboard.press('Backspace');
+    await assertNoNavigation(reloadTarget, '/two');
+    const historyLength = await reloadTarget.evaluate(() => {
+      window.__beforeReload = true;
+      return history.length;
+    });
+    await page.evaluate(() => { window.__unrelatedTab = true; });
+    let reloadCount = 0;
+    reloadTarget.on('framenavigated', (frame) => {
+      if (frame === reloadTarget.mainFrame()) reloadCount++;
+    });
+    const togglePopup = await context.newPage();
+    await togglePopup.addInitScript(({ id, url }) => {
+      chrome.tabs.query = (_query, callback) => callback([{ id, url }]);
+    }, { id: reloadTabId, url: `${fixture.origin}/two` });
+    await togglePopup.goto(`${extensionOrigin}/${popupRelativePath}`);
+    const enableButton = togglePopup.getByRole('button', { name: 'Enable and refresh page', exact: true });
+    await enableButton.waitFor({ state: 'visible' });
+    assert.match(await togglePopup.locator('#site-status').innerText(), /unsaved changes/i);
+    const reloaded = reloadTarget.waitForEvent('load', { timeout: 5000 });
+    await enableButton.click();
+    await reloaded;
+    assert.equal(await reloadTarget.evaluate(() => window.__beforeReload), undefined);
+    assert.equal(await reloadTarget.evaluate(() => history.length), historyLength, 'Refresh must not add a history entry');
+    assert.equal(reloadCount, 1, 'Enable must refresh the captured tab exactly once');
+    assert.equal(await page.evaluate(() => window.__unrelatedTab), true, 'Another tab was refreshed');
+    assert.deepEqual((await getChromeSync(optionsPage)).value.disabledSites, []);
+    await reloadTarget.bringToFront();
+    await focusDocumentBody(reloadTarget);
+    await reloadTarget.keyboard.press('Backspace');
+    await waitForPath(reloadTarget, '/one');
+    logPass('popup enable saves real sync settings, reloads only its target once, preserves history, and Backspace then works');
+    console.log('LIMIT enable-refresh proof fixtures only tabs.query selection, not native toolbar invocation/activeTab consent; tabs.reload and storage use real Chrome APIs');
+    await togglePopup.close();
+    await reloadTarget.close();
+
     await submitSiteRule(optionsPage, input, 'persist.example');
     await optionsPage.getByText('persist.example', { exact: true }).waitFor({ state: 'visible' });
     const beforeRestart = await getChromeSync(optionsPage);

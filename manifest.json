@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Backspace to go Back",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Razvan Caliman",
   "description": "Navigate with Backspace and disable the shortcut on selected sites.",
   "minimum_chrome_version": "88",

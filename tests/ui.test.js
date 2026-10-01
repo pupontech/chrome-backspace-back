@@ -54,7 +54,7 @@ function fakeChrome(initial, activeUrl = "https://www.example.com/path") {
       openOptionsPage(callback) { optionsOpens.count += 1; if (callback) callback(); }
     },
     tabs: {
-      query(_query, callback) { callback([{ url: activeUrl }]); }
+      query(_query, callback) { callback([{ id: 73, url: activeUrl }]); }
     },
     storage: {
       sync: {
@@ -115,12 +115,67 @@ test("popup identifies unsupported browser and Chrome Web Store pages", () => {
   assert.equal(isSupportedUrl("https://example.com/", SiteRules), "example.com");
 });
 
+test("popup re-enables the site before refreshing only the originally selected tab", async () => {
+  const doc = popupDocument();
+  const fake = fakeChrome(["www.example.com", "other.example"]);
+  const reloaded = [];
+  fake.chrome.tabs.reload = (id, callback) => {
+    assert.deepEqual(fake.data.disabledSites, ["other.example"], "settings must save before reload");
+    reloaded.push(id);
+    callback();
+  };
+  const controller = createPopupController({ document: doc, chrome: fake.chrome, SiteRules });
+  await controller.init();
+  await doc.elements["site-action"].dispatch("click");
+  assert.deepEqual(reloaded, [73]);
+  assert.equal(doc.elements["site-action"].textContent, "Disable for this site");
+  controller.dispose();
+});
+
+test("popup coalesces repeated clicks while enabling and refreshing", async () => {
+  const doc = popupDocument();
+  const fake = fakeChrome(["www.example.com"]);
+  let finishReload;
+  fake.chrome.tabs.reload = (_id, callback) => { finishReload = callback; };
+  const controller = createPopupController({ document: doc, chrome: fake.chrome, SiteRules });
+  await controller.init();
+  const first = controller.handleAction();
+  const second = controller.handleAction();
+  await flush();
+  assert.equal(typeof finishReload, "function");
+  finishReload();
+  await Promise.all([first, second]);
+  assert.deepEqual(fake.data.disabledSites, []);
+  assert.equal(fake.writes.length, 1);
+  assert.equal(doc.elements["site-action"].disabled, false);
+  controller.dispose();
+});
+
+test("popup warns before refreshing and reports refresh failure without undoing saved enable", async () => {
+  const doc = popupDocument();
+  const fake = fakeChrome(["www.example.com"]);
+  fake.chrome.tabs.reload = (_id, callback) => {
+    fake.chrome.runtime.lastError = { message: "Tab closed" };
+    callback();
+    fake.chrome.runtime.lastError = null;
+  };
+  const controller = createPopupController({ document: doc, chrome: fake.chrome, SiteRules });
+  await controller.init();
+  assert.equal(doc.elements["site-action"].textContent, "Enable and refresh page");
+  assert.match(doc.elements["site-status"].textContent, /unsaved changes/i);
+  await doc.elements["site-action"].dispatch("click");
+  assert.deepEqual(fake.data.disabledSites, []);
+  assert.match(doc.elements["popup-error"].textContent, /enabled.*reload.*manually.*Tab closed/i);
+  assert.equal(doc.elements["popup-error"].hidden, false);
+  controller.dispose();
+});
+
 test("popup removes only the exact rule; inherited parent rule remains and opens options", async () => {
   const doc = popupDocument();
   const fake = fakeChrome(["example.com", "www.example.com"]);
   const controller = createPopupController({ document: doc, chrome: fake.chrome, SiteRules });
   await controller.init();
-  assert.equal(doc.elements["site-action"].textContent, "Enable for this site");
+  assert.equal(doc.elements["site-action"].textContent, "Remove site rule");
   await doc.elements["site-action"].dispatch("click");
   await flush();
   assert.deepEqual(fake.data.disabledSites, ["example.com"]);
@@ -145,6 +200,45 @@ test("popup adds a site only after a fresh storage read and reacts to external c
   fake.externalSet({ disabledSites: ["example.com"] });
   await flush();
   assert.equal(doc.elements["site-action"].textContent, "Manage in options");
+  controller.dispose();
+});
+
+test("popup never refreshes when disabling, parent-controlled, or on an unsupported page", async () => {
+  for (const [rules, url] of [
+    [[], "https://www.example.com/"],
+    [["example.com"], "https://www.example.com/"],
+    [["example.com", "www.example.com"], "https://www.example.com/"],
+    [[], "chrome://settings/"]
+  ]) {
+    const doc = popupDocument();
+    const fake = fakeChrome(rules, url);
+    let reloads = 0;
+    fake.chrome.tabs.reload = (_id, callback) => { reloads++; callback(); };
+    const controller = createPopupController({ document: doc, chrome: fake.chrome, SiteRules });
+    await controller.init();
+    await controller.handleAction();
+    assert.equal(reloads, 0, url);
+    controller.dispose();
+  }
+});
+
+test("popup does not refresh or clear the exclusion if saving fails", async () => {
+  const doc = popupDocument();
+  const fake = fakeChrome(["www.example.com"]);
+  let reloads = 0;
+  fake.chrome.tabs.reload = (_id, callback) => { reloads++; callback(); };
+  fake.chrome.storage.sync.set = (_values, callback) => {
+    fake.chrome.runtime.lastError = { message: "Sync quota exceeded" };
+    callback();
+    fake.chrome.runtime.lastError = null;
+  };
+  const controller = createPopupController({ document: doc, chrome: fake.chrome, SiteRules });
+  await controller.init();
+  await controller.handleAction();
+  assert.equal(reloads, 0);
+  assert.deepEqual(fake.data.disabledSites, ["www.example.com"]);
+  assert.match(doc.elements["popup-error"].textContent, /Sync quota exceeded/);
+  assert.equal(doc.elements["site-action"].disabled, false);
   controller.dispose();
 });
 

@@ -25,10 +25,12 @@
     var actionButton = doc.getElementById("site-action");
     var optionsLink = doc.getElementById("options-link");
     var hostname = null;
+    var tabId = null;
     var rules = [];
     var settingsLoaded = false;
     var revision = 0;
     var operationQueue = Promise.resolve();
+    var busy = false;
 
     function setError(error) {
       errorMessage.textContent = error ? (error.message || "Something went wrong. Please try again.") : "";
@@ -60,13 +62,16 @@
         siteStatus.textContent = "Backspace navigation is enabled on this site.";
         actionButton.textContent = "Disable for this site";
       } else if (exact) {
-        siteStatus.textContent = "Backspace navigation is disabled by this site rule.";
-        actionButton.textContent = "Enable for this site";
+        var parent = siteRules.findMatchingRule(hostname, rules.filter(function (rule) { return rule !== hostname; }));
+        siteStatus.textContent = parent
+          ? "Also disabled by the parent rule “" + parent + "”. Removing this site rule will not enable navigation."
+          : "Enabling navigation refreshes this page. Unsaved changes may be lost.";
+        actionButton.textContent = parent ? "Remove site rule" : "Enable and refresh page";
       } else {
         siteStatus.textContent = "Backspace navigation is disabled by the parent rule “" + match + "”.";
         actionButton.textContent = "Manage in options";
       }
-      actionButton.disabled = false;
+      actionButton.disabled = busy;
     }
 
     function refresh() {
@@ -87,7 +92,9 @@
     }
 
     function handleAction() {
-      if (!hostname) return Promise.resolve();
+      if (!hostname || busy) return operationQueue;
+      busy = true;
+      render();
       return enqueue(function () {
         setError(null);
         return readSettings(chromeApi, siteRules).then(function (latest) {
@@ -100,6 +107,11 @@
             return writeSettings(chromeApi, updated).then(function () {
               rules = updated;
               render();
+              if (!matchingRule()) {
+                return apiCall(chromeApi.tabs, "reload", [tabId], chromeApi).catch(function (error) {
+                  throw new Error("Navigation is enabled, but the page could not be refreshed. Reload it manually. " + error.message);
+                });
+              }
             });
           }
           if (matchingRule()) {
@@ -111,6 +123,9 @@
             render();
           });
         });
+      }).finally(function () {
+        busy = false;
+        render();
       });
     }
 
@@ -138,7 +153,8 @@
       return apiCall(chromeApi.tabs, "query", [{ active: true, currentWindow: true }], chromeApi)
         .then(function (tabs) {
           var activeTab = Array.isArray(tabs) ? tabs[0] : null;
-          hostname = activeTab ? isSupportedUrl(activeTab.url, siteRules) : null;
+          tabId = activeTab && Number.isInteger(activeTab.id) && activeTab.id >= 0 ? activeTab.id : null;
+          hostname = tabId !== null ? isSupportedUrl(activeTab.url, siteRules) : null;
           render();
           if (!hostname) return;
           return refresh().catch(function (error) {

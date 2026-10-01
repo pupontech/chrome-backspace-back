@@ -7,7 +7,8 @@ const root = path.join(__dirname, '..');
 test('runtime manifest stays minimal and its files exist', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json')));
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, '1.2.0');
+  assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(manifest.version, JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).version);
   assert.deepEqual([...manifest.permissions].sort(), ['activeTab', 'storage']);
   assert.equal(manifest.background, undefined);
   for (const forbidden of ['host_permissions', 'optional_permissions', 'web_accessible_resources']) {
